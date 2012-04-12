@@ -3,21 +3,19 @@ import std.random;
 import std.stdio;
 import std.c.time;
 
-interface Sampler(UniformRandomNumberGenerator) {
-	size_t select(ref UniformRandomNumberGenerator urng);
+interface Sampler(UniformRNG) {
+	size_t select(ref UniformRNG urng);
 }
 
 
-class Skipper(UniformRandomNumberGenerator) : Sampler!(UniformRandomNumberGenerator) {
-	this(size_t records,
-	     size_t sample,
-	     ref UniformRandomNumberGenerator urng)
+class Skipper(UniformRNG): Sampler!UniformRNG {
+	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
 		recordsRemaining = recordsTotal = records;
 		sampleRemaining = sampleTotal = sample;
 	}
 	
-	final size_t select(ref UniformRandomNumberGenerator urng)
+	final size_t select(ref UniformRNG urng)
 	{
 		if(recordsRemaining < 1) {
 			// Throw error: no more records to sample.
@@ -46,21 +44,19 @@ protected:
 	size_t recordsTotal;
 	size_t sampleRemaining;
 	size_t sampleTotal;
-	size_t skip(ref UniformRandomNumberGenerator urng)
+	size_t skip(ref UniformRNG urng)
 	{
 		return 0;
 	}
 }
 
-class VitterA(UniformRandomNumberGenerator) : Skipper!UniformRandomNumberGenerator {
-	this(size_t records,
-	     size_t sample,
-	     ref UniformRandomNumberGenerator urng)
+class VitterA(UniformRNG): Skipper!UniformRNG {
+	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
 		super(records,sample,urng);
 	}
 protected:
-	override size_t skip(ref UniformRandomNumberGenerator urng) {
+	override size_t skip(ref UniformRNG urng) {
 		size_t S;
 		double V, quot, top;
 
@@ -83,10 +79,10 @@ protected:
 	}
 }
 
-class VitterD(UniformRandomNumberGenerator) : VitterA!(UniformRandomNumberGenerator) {
+class VitterD(UniformRNG): VitterA!UniformRNG {
 	this(size_t records,
 	     size_t sample,
-	     ref UniformRandomNumberGenerator urng)
+	     ref UniformRNG urng)
 	{
 		super(records,sample, urng);
 		if( (alphaInverse * sampleRemaining) > recordsRemaining) {
@@ -98,7 +94,7 @@ class VitterD(UniformRandomNumberGenerator) : VitterA!(UniformRandomNumberGenera
 	}
 	
 protected:
-	override size_t skip(ref UniformRandomNumberGenerator urng) {
+	override size_t skip(ref UniformRNG urng) {
 		size_t S;
 		size_t top, t, limit;
 		size_t qu1 = 1 + recordsRemaining - sampleRemaining;
@@ -156,15 +152,15 @@ private:
 	double Vprime;
 	bool useVitterA;
 	double newVprime(size_t remaining,
-	                 ref UniformRandomNumberGenerator urng)
+	                 ref UniformRNG urng)
 	{
 		return pow ( uniform!("()")(0.0,1.0, urng), 1.0/remaining );
 	}
 }
 
 
-void sampling_test_simple(SamplerType, UniformRandomNumberGenerator)
-(size_t records, size_t samples, ref UniformRandomNumberGenerator urng)
+void sampling_test_simple(SamplerType, UniformRNG)
+                         (size_t records, size_t samples, ref UniformRNG urng)
 {
 	auto s = new SamplerType(records,samples,urng);
 	while(s.sample_remaining() > 0) {
@@ -174,8 +170,9 @@ void sampling_test_simple(SamplerType, UniformRandomNumberGenerator)
 	}
 }
 
-void sampling_test_aggregate(SamplerType, UniformRandomNumberGenerator)
-(size_t records, size_t samples, ref UniformRandomNumberGenerator urng, size_t repeats=10000000, bool displayResults=true)
+void sampling_test_aggregate(SamplerType, UniformRNG)
+                            (size_t records, size_t samples, ref UniformRNG urng,
+                             size_t repeats=10000000, bool displayResults=true)
 {
 	double[] recordCount;
 	clock_t start_time, end_time;
