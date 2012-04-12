@@ -7,17 +7,6 @@ interface Sampler(UniformRandomNumberGenerator) {
 	size_t select(ref UniformRandomNumberGenerator urng);
 }
 
-double uniform_open(UniformRandomNumberGenerator)
-(double a, double b, ref UniformRandomNumberGenerator urng)
-{
-	double x;
-
-	do {
-		x = uniform(a,b,urng);
-	} while (x==a);
-
-	return x;
-}
 
 class Skipper(UniformRandomNumberGenerator) : Sampler!(UniformRandomNumberGenerator) {
 	this(size_t records,
@@ -82,7 +71,7 @@ protected:
 			top = recordsRemaining - sampleRemaining;
 			quot = top / recordsRemaining;
 
-			V = uniform_open(0.0,1.0, urng);
+			V = uniform!("()")(0.0,1.0, urng);
 
 			while (quot > V) {
 				++S;
@@ -128,7 +117,7 @@ protected:
 					Vprime = newVprime(sampleRemaining, urng);
 				}
 
-				y1 = pow( (uniform_open(0.0,1.0, urng) * (cast(double) recordsRemaining) / qu1),
+				y1 = pow( (uniform!("()")(0.0,1.0, urng) * (cast(double) recordsRemaining) / qu1),
 				          (1.0/(sampleRemaining - 1)) );
 
 				Vprime = y1 * ((-X/recordsRemaining)+1.0) * ( qu1/( (cast(double) qu1) - S ) );
@@ -169,7 +158,7 @@ private:
 	double newVprime(size_t remaining,
 	                 ref UniformRandomNumberGenerator urng)
 	{
-		return pow ( uniform_open(0.0,1.0, urng), 1.0/remaining );
+		return pow ( uniform!("()")(0.0,1.0, urng), 1.0/remaining );
 	}
 }
 
