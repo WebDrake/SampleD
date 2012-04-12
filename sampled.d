@@ -21,12 +21,13 @@ class Skipper(UniformRNG): Sampler!UniformRNG {
 		assert(_sampleRemaining > 0);
 
 		immutable size_t S = skip(urng);
+		immutable size_t selectedRecord = _currentRecord + S;
 
 		_sampleRemaining--;
 		_recordsRemaining -= (S+1);
-		_currentRecord += S;
+		_currentRecord += (S+1);
 		
-		return _currentRecord++;
+		return selectedRecord;
 	}
 
 	final size_t recordsRemaining() { return _recordsRemaining; }
@@ -127,8 +128,11 @@ protected:
 						limit = qu1;
 					}
 
-					for( t=_recordsRemaining-1; t>=limit; --t)
-						y2 *= top--/bottom--;
+					for( t=_recordsRemaining-1; t>=limit; --t) {
+						y2 *= top/bottom;
+						top--;
+						bottom--;
+					}
 
 					if( (_recordsRemaining/(_recordsRemaining-X)) < (y1*pow(y2, 1.0/(_sampleRemaining-1))) ) {
 						Vprime = newVprime(_sampleRemaining, urng);
