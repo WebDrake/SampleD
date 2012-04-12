@@ -11,39 +11,36 @@ interface Sampler(UniformRNG) {
 class Skipper(UniformRNG): Sampler!UniformRNG {
 	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
-		recordsRemaining = recordsTotal = records;
-		sampleRemaining = sampleTotal = sample;
+		_recordsRemaining = _recordsTotal = records;
+		_sampleRemaining = _sampleTotal = sample;
 	}
 	
 	final size_t select(ref UniformRNG urng)
 	{
-		if(recordsRemaining < 1) {
-			// Throw error: no more records to sample.
-		} else if (sampleRemaining < 1) {
-			// Throw error: entire sample already aquired.
-		}
+		assert(_recordsRemaining > 0);
+		assert(_sampleRemaining > 0);
 
-		size_t S = skip(urng);
+		immutable size_t S = skip(urng);
 
-		sampleRemaining--;
-		recordsRemaining -= (S+1);
-		currentRecord += S;
+		_sampleRemaining--;
+		_recordsRemaining -= (S+1);
+		_currentRecord += S;
 		
-		return currentRecord++;
+		return _currentRecord++;
 	}
 
-	final size_t records_remaining() { return recordsRemaining; }
-	final size_t records_total() { return recordsTotal; }
+	final size_t recordsRemaining() { return _recordsRemaining; }
+	final size_t recordsTotal() { return _recordsTotal; }
 
-	final size_t sample_remaining() { return sampleRemaining; }
-	final size_t sample_total() { return sampleTotal; }
+	final size_t sampleRemaining() { return _sampleRemaining; }
+	final size_t sampleTotal() { return _sampleTotal; }
 
 protected:
-	size_t currentRecord = 0;
-	size_t recordsRemaining;
-	size_t recordsTotal;
-	size_t sampleRemaining;
-	size_t sampleTotal;
+	size_t _currentRecord = 0;
+	size_t _recordsRemaining;
+	size_t _recordsTotal;
+	size_t _sampleRemaining;
+	size_t _sampleTotal;
 	size_t skip(ref UniformRNG urng)
 	{
 		return 0;
@@ -60,18 +57,18 @@ protected:
 		size_t S;
 		double V, quot, top;
 
-		if(sampleRemaining==1)
-			S = uniform(0, recordsRemaining, urng);
+		if(_sampleRemaining==1)
+			S = uniform(0, _recordsRemaining, urng);
 		else {
 			S = 0;
-			top = recordsRemaining - sampleRemaining;
-			quot = top / recordsRemaining;
+			top = _recordsRemaining - _sampleRemaining;
+			quot = top / _recordsRemaining;
 
 			V = uniform!("()")(0.0,1.0, urng);
 
 			while (quot > V) {
 				++S;
-				quot *= (top - S) / (recordsRemaining - S);
+				quot *= (top - S) / (_recordsRemaining - S);
 			}
 		}
 
@@ -85,10 +82,10 @@ class VitterD(UniformRNG): VitterA!UniformRNG {
 	     ref UniformRNG urng)
 	{
 		super(records,sample, urng);
-		if( (alphaInverse * sampleRemaining) > recordsRemaining) {
+		if( (alphaInverse * _sampleRemaining) > _recordsRemaining) {
 			useVitterA = true;
 		} else {
-			Vprime = newVprime(sampleRemaining, urng);
+			Vprime = newVprime(_sampleRemaining, urng);
 			useVitterA = false;
 		}
 	}
@@ -97,46 +94,46 @@ protected:
 	override size_t skip(ref UniformRNG urng) {
 		size_t S;
 		size_t top, t, limit;
-		size_t qu1 = 1 + recordsRemaining - sampleRemaining;
+		size_t qu1 = 1 + _recordsRemaining - _sampleRemaining;
 		double X, y1, y2, bottom;
 
 		if(useVitterA)
 			return super.skip(urng);
-		else if ( (alphaInverse * sampleRemaining) > recordsRemaining) {
+		else if ( (alphaInverse * _sampleRemaining) > _recordsRemaining) {
 			useVitterA = true;
 			return super.skip(urng);
-		} else if ( sampleRemaining > 1 ) {
+		} else if ( _sampleRemaining > 1 ) {
 			while(1) {
-				for(X = recordsRemaining * (1-Vprime), S = cast(size_t) trunc(X);
+				for(X = _recordsRemaining * (1-Vprime), S = cast(size_t) trunc(X);
 				    S >= qu1;
-				    X = recordsRemaining * (1-Vprime), S = cast(size_t) trunc(X)) {
-					Vprime = newVprime(sampleRemaining, urng);
+				    X = _recordsRemaining * (1-Vprime), S = cast(size_t) trunc(X)) {
+					Vprime = newVprime(_sampleRemaining, urng);
 				}
 
-				y1 = pow( (uniform!("()")(0.0,1.0, urng) * (cast(double) recordsRemaining) / qu1),
-				          (1.0/(sampleRemaining - 1)) );
+				y1 = pow( (uniform!("()")(0.0,1.0, urng) * (cast(double) _recordsRemaining) / qu1),
+				          (1.0/(_sampleRemaining - 1)) );
 
-				Vprime = y1 * ((-X/recordsRemaining)+1.0) * ( qu1/( (cast(double) qu1) - S ) );
+				Vprime = y1 * ((-X/_recordsRemaining)+1.0) * ( qu1/( (cast(double) qu1) - S ) );
 
 				if(Vprime > 1.0) {
 					y2 = 1.0;
-					top = recordsRemaining -1;
+					top = _recordsRemaining -1;
 
-					if(sampleRemaining > (S+1) ) {
-						bottom = recordsRemaining - sampleRemaining;
-						limit = recordsRemaining - S;
+					if(_sampleRemaining > (S+1) ) {
+						bottom = _recordsRemaining - _sampleRemaining;
+						limit = _recordsRemaining - S;
 					} else {
-						bottom = recordsRemaining - (S+1);
+						bottom = _recordsRemaining - (S+1);
 						limit = qu1;
 					}
 
-					for( t=recordsRemaining-1; t>=limit; --t)
+					for( t=_recordsRemaining-1; t>=limit; --t)
 						y2 *= top--/bottom--;
 
-					if( (recordsRemaining/(recordsRemaining-X)) < (y1*pow(y2, 1.0/(sampleRemaining-1))) ) {
-						Vprime = newVprime(sampleRemaining, urng);
+					if( (_recordsRemaining/(_recordsRemaining-X)) < (y1*pow(y2, 1.0/(_sampleRemaining-1))) ) {
+						Vprime = newVprime(_sampleRemaining, urng);
 					} else {
-						Vprime = newVprime(sampleRemaining-1, urng);
+						Vprime = newVprime(_sampleRemaining-1, urng);
 						return S;
 					}
 				} else {
@@ -144,7 +141,7 @@ protected:
 				}
 			}
 		} else {
-			return cast(size_t) trunc(recordsRemaining * Vprime);
+			return cast(size_t) trunc(_recordsRemaining * Vprime);
 		}
 	}
 private:
@@ -163,10 +160,10 @@ void sampling_test_simple(SamplerType, UniformRNG)
                          (size_t records, size_t samples, ref UniformRNG urng)
 {
 	auto s = new SamplerType(records,samples,urng);
-	while(s.sample_remaining() > 0) {
+	while(s.sampleRemaining > 0) {
 		write("\trecord selected: ", s.select(urng), ".");
-		write("\trecords remaining: ", s.records_remaining(), ".");
-		writeln("\tstill to sample: ", s.sample_remaining(), ".");
+		write("\trecords remaining: ", s.recordsRemaining, ".");
+		writeln("\tstill to sample: ", s.sampleRemaining, ".");
 	}
 }
 
@@ -187,7 +184,7 @@ void sampling_test_aggregate(SamplerType, UniformRNG)
 	foreach(size_t i; 0..repeats) {
 		auto s = new SamplerType(records, samples, urng);
 
-		while(s.sample_remaining() > 0) {
+		while(s.sampleRemaining > 0) {
 			recordCount[s.select(urng)]++;
 		}
 	}
