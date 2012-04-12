@@ -111,8 +111,7 @@ protected:
 					Vprime = newVprime(_sampleRemaining, urng);
 				}
 
-				y1 = pow( (uniform!("()")(0.0,1.0, urng) * (cast(double) _recordsRemaining) / qu1),
-				          (1.0/(_sampleRemaining - 1)) );
+				y1 = (uniform!("()")(0.0,1.0, urng) * (cast(double) _recordsRemaining) / qu1) ^^ (1.0/(_sampleRemaining - 1));
 
 				Vprime = y1 * ((-X/_recordsRemaining)+1.0) * ( qu1/( (cast(double) qu1) - S ) );
 
@@ -134,7 +133,7 @@ protected:
 						bottom--;
 					}
 
-					if( (_recordsRemaining/(_recordsRemaining-X)) < (y1*pow(y2, 1.0/(_sampleRemaining-1))) ) {
+					if( (_recordsRemaining/(_recordsRemaining-X)) < (y1 * (y2 ^^ (1.0/(_sampleRemaining-1)))) ) {
 						Vprime = newVprime(_sampleRemaining, urng);
 					} else {
 						Vprime = newVprime(_sampleRemaining-1, urng);
@@ -155,7 +154,7 @@ private:
 	double newVprime(size_t remaining,
 	                 ref UniformRNG urng)
 	{
-		return pow ( uniform!("()")(0.0,1.0, urng), 1.0/remaining );
+		return ( uniform!("()")(0.0,1.0, urng) ^^ (1.0/remaining) );
 	}
 }
 
