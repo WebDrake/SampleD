@@ -60,7 +60,7 @@ class SamplingAlgorithmS(UniformRNG): SamplingAlgorithm!UniformRNG
 			size_t r = uniform(0, _recordsRemaining, urng);
 
 			if(r < _sampleRemaining) {
-				size_t selectedRecord = _currentRecord;
+				immutable size_t selectedRecord = _currentRecord;
 				_sampleRemaining--;
 				_recordsRemaining--;
 				_currentRecord++;
