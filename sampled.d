@@ -308,9 +308,9 @@ void main() {
 
 	writeln("Now I'm going to take samples of 5 from 1000.  Notice how the time");
 	writeln("required to carry out the sampling increases massively for Algorithm");
-	writeln("A, but remains about the same for Algorithm D.  (We don't consider");
-	writeln("Algorithm S, because it should be clear it's orders of magnitude");
-	writeln("slower than these two.");
+	writeln("A, but remains about the same for Algorithm D.  We don't consider");
+	writeln("Algorithm S, because it should already be clear it's some orders of");
+	writeln("magnitude slower than these two.");
 	writeln();
 	
 	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(1000, 5, urng, trialRepeats, false);
