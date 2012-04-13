@@ -272,6 +272,7 @@ void sampling_test_aggregate(SamplerType, UniformRNG)
 
 void main() {
 	auto urng = Random(23);
+	size_t trialRepeats = 10_000_000;
 
 	writeln("Hello!  I'm a very simple and stupid implementation of some clever");
 	writeln("sampling algorithms.");
@@ -281,46 +282,48 @@ void main() {
 	writeln();
 	
 	writeln("Vitter's Algorithm A:");
-	sampling_test_simple!(SamplingAlgorithmA!Random,Random)(100,5,urng);
+	sampling_test_simple!(SamplingAlgorithmA!Random,Random)(100, 5, urng);
 	writeln();
 	
 	writeln("Vitter's Algorithm D:");
-	sampling_test_simple!(SamplingAlgorithmD!Random,Random)(100,5,urng);
+	sampling_test_simple!(SamplingAlgorithmD!Random,Random)(100, 5, urng);
 	writeln();
 
 	writeln("Fan et al./Jones' Algorithm S:");
-	sampling_test_simple!(SamplingAlgorithmS!Random,Random)(100,5,urng);
+	sampling_test_simple!(SamplingAlgorithmS!Random,Random)(100, 5, urng);
 	writeln();
 
 	writeln("Now I'm going to again take samples of 5 from 100, but repeat the");
-	writeln("process 10 million times.  This is basically a simple way of");
+	writeln("process some ", trialRepeats, " times.  This is basically a simple way of");
 	writeln("checking for obvious bias -- we'll print out the number of times");
 	writeln("each record is picked so you can see.");
 	writeln();
 
-	sampling_test_aggregate!(SamplingAlgorithmS!Random,Random)(100,5,urng,10000000,true);
+	sampling_test_aggregate!(SamplingAlgorithmS!Random,Random)(100, 5, urng, trialRepeats, true);
 	writeln();
-	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(100,5,urng,10000000,true);
+	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(100, 5, urng, trialRepeats, true);
 	writeln();
-	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(100,5,urng,10000000,true);
+	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(100, 5, urng, trialRepeats, true);
 	writeln();
 
 	writeln("Now I'm going to take samples of 5 from 1000.  Notice how the time");
 	writeln("required to carry out the sampling increases massively for Algorithm");
-	writeln("A, but remains about the same for Algorithm D.");
+	writeln("A, but remains about the same for Algorithm D.  (We don't consider");
+	writeln("Algorithm S, because it should be clear it's orders of magnitude");
+	writeln("slower than these two.");
 	writeln();
 	
-	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(1000,5,urng,10000000,false);
+	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(1000, 5, urng, trialRepeats, false);
 	writeln();
 	
-	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(1000,5,urng,10000000,false);
+	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(1000, 5, urng, trialRepeats, false);
 	writeln();
 
 	writeln("Now to finish up I'm going to sample 100,000 records from 10 million,");
 	writeln("repeating the process 100 times.");
 	writeln();
-	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(10000000,100000,urng,100,false);
-	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(10000000,100000,urng,100,false);
+	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(10000000, 100000, urng, 100, false);
+	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(10000000, 100000, urng, 100, false);
 	writeln();
 
 	writeln("That's all I'm demonstrating for now.  Hope you enjoyed the show!");
