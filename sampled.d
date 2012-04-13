@@ -13,6 +13,7 @@ class Skipper(UniformRNG): Sampler!UniformRNG {
 	{
 		_recordsRemaining = _recordsTotal = records;
 		_sampleRemaining = _sampleTotal = sample;
+		_currentRecord = 0;
 	}
 	
 	final size_t select(ref UniformRNG urng)
