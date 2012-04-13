@@ -16,9 +16,13 @@ class Skipper(UniformRNG): Sampler!UniformRNG {
 	}
 	
 	final size_t select(ref UniformRNG urng)
+	in
 	{
-		assert(_recordsRemaining > 0);
-		assert(_sampleRemaining > 0);
+		assert(_sampleRemaining > 0);	
+		assert(_recordsRemaining >= _sampleRemaining);
+	}
+	body
+	{
 
 		immutable size_t S = skip(urng);
 		immutable size_t selectedRecord = _currentRecord + S;
