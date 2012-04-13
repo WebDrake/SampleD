@@ -24,7 +24,6 @@ class Skipper(UniformRNG): Sampler!UniformRNG {
 	}
 	body
 	{
-
 		immutable size_t S = skip(urng);
 		immutable size_t selectedRecord = _currentRecord + S;
 
@@ -173,6 +172,17 @@ void sampling_test_simple(SamplerType, UniformRNG)
 		write("\trecords remaining: ", s.recordsRemaining, ".");
 		writeln("\tstill to sample: ", s.sampleRemaining, ".");
 	}
+	// Let's see if we can bust this ...
+	
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
+	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
 }
 
 void sampling_test_aggregate(SamplerType, UniformRNG)
