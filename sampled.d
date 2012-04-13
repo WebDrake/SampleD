@@ -4,7 +4,8 @@ import std.stdio;
 import std.c.time;
 
 
-class Skipper(UniformRNG) {
+class SamplingAlgorithm(UniformRNG)
+{
 	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
 		_recordsRemaining = _recordsTotal = records;
@@ -12,22 +13,16 @@ class Skipper(UniformRNG) {
 		_currentRecord = 0;
 	}
 	
-	final size_t select(ref UniformRNG urng)
+	size_t select(ref UniformRNG urng)
 	in
 	{
-		assert(_sampleRemaining > 0);	
-		assert(_recordsRemaining >= _sampleRemaining);
+		// No one should actually call this function.
+		// Raise a big fuss if they do!!
+		assert(false);
 	}
 	body
 	{
-		immutable size_t S = skip(urng);
-		immutable size_t selectedRecord = _currentRecord + S;
-
-		_sampleRemaining--;
-		_recordsRemaining -= (S+1);
-		_currentRecord += (S+1);
-		
-		return selectedRecord;
+		return 0;
 	}
 
 	final size_t recordsRemaining() { return _recordsRemaining; }
@@ -42,17 +37,49 @@ protected:
 	size_t _recordsTotal;
 	size_t _sampleRemaining;
 	size_t _sampleTotal;
+}
+
+
+class SamplingAlgorithmSkip(UniformRNG): SamplingAlgorithm!UniformRNG
+{
+	this(size_t records, size_t sample, ref UniformRNG urng)
+	{
+		super(records,sample,urng);
+	}
+	
+	final size_t select(ref UniformRNG urng)
+	in
+	{
+		assert(_sampleRemaining > 0);
+		assert(_recordsRemaining >= _sampleRemaining);
+	}
+	body
+	{
+		immutable size_t S = skip(urng);
+		immutable size_t selectedRecord = _currentRecord + S;
+
+		_sampleRemaining--;
+		_recordsRemaining -= (S+1);
+		_currentRecord += (S+1);
+		
+		return selectedRecord;
+	}
+
+protected:
 	size_t skip(ref UniformRNG urng)
 	{
 		return 0;
 	}
 }
 
-class VitterA(UniformRNG): Skipper!UniformRNG {
+
+class SamplingAlgorithmA(UniformRNG): SamplingAlgorithmSkip!UniformRNG
+{
 	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
 		super(records,sample,urng);
 	}
+	
 protected:
 	override size_t skip(ref UniformRNG urng) {
 		size_t S;
@@ -77,10 +104,10 @@ protected:
 	}
 }
 
-class VitterD(UniformRNG): VitterA!UniformRNG {
-	this(size_t records,
-	     size_t sample,
-	     ref UniformRNG urng)
+
+class SamplingAlgorithmD(UniformRNG): SamplingAlgorithmA!UniformRNG
+{
+	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
 		super(records,sample, urng);
 		if( (alphaInverse * _sampleRemaining) > _recordsRemaining) {
@@ -92,7 +119,8 @@ class VitterD(UniformRNG): VitterA!UniformRNG {
 	}
 	
 protected:
-	override size_t skip(ref UniformRNG urng) {
+	override size_t skip(ref UniformRNG urng)
+	{
 		size_t S;
 		size_t top, t, limit;
 		size_t qu1 = 1 + _recordsRemaining - _sampleRemaining;
@@ -151,8 +179,7 @@ private:
 	immutable ushort alphaInverse = 13;
 	double Vprime;
 	bool useVitterA;
-	double newVprime(size_t remaining,
-	                 ref UniformRNG urng)
+	double newVprime(size_t remaining, ref UniformRNG urng)
 	{
 		return ( uniform!("()")(0.0,1.0, urng) ^^ (1.0/remaining) );
 	}
@@ -168,6 +195,9 @@ void sampling_test_simple(SamplerType, UniformRNG)
 		write("\trecords remaining: ", s.recordsRemaining, ".");
 		writeln("\tstill to sample: ", s.sampleRemaining, ".");
 	}
+
+	// Uncomment the following line if you want to force an assertion error ...
+	// writeln("Let's sample 1 more for luck: ", s.select(urng), "\trecords remaining: ", s.recordsRemaining, "\tstill to sample: ", s.sampleRemaining);
 }
 
 void sampling_test_aggregate(SamplerType, UniformRNG)
@@ -213,11 +243,11 @@ void main() {
 	writeln();
 	
 	writeln("Vitter's Algorithm A:");
-	sampling_test_simple!(VitterA!Random,Random)(100,5,urng);
+	sampling_test_simple!(SamplingAlgorithmA!Random,Random)(100,5,urng);
 	writeln();
 	
 	writeln("Vitter's Algorithm D:");
-	sampling_test_simple!(VitterD!Random,Random)(100,5,urng);
+	sampling_test_simple!(SamplingAlgorithmD!Random,Random)(100,5,urng);
 	writeln();
 
 	writeln("Now I'm going to again take samples of 5 from 100, but repeat the");
@@ -226,9 +256,9 @@ void main() {
 	writeln("each record is picked so you can see.");
 	writeln();
 
-	sampling_test_aggregate!(VitterA!Random,Random)(100,5,urng,10000000,true);
+	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(100,5,urng,10000000,true);
 	writeln();
-	sampling_test_aggregate!(VitterD!Random,Random)(100,5,urng,10000000,true);
+	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(100,5,urng,10000000,true);
 	writeln();
 
 	writeln("Now I'm going to take samples of 5 from 1000.  Notice how the time");
@@ -236,17 +266,17 @@ void main() {
 	writeln("A, but remains about the same for Algorithm D.");
 	writeln();
 	
-	sampling_test_aggregate!(VitterA!Random,Random)(1000,5,urng,10000000,false);
+	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(1000,5,urng,10000000,false);
 	writeln();
 	
-	sampling_test_aggregate!(VitterD!Random,Random)(1000,5,urng,10000000,false);
+	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(1000,5,urng,10000000,false);
 	writeln();
 
 	writeln("Now to finish up I'm going to sample 100,000 records from 10 million,");
 	writeln("repeating the process 100 times.");
 	writeln();
-	sampling_test_aggregate!(VitterA!Random,Random)(10000000,100000,urng,100,false);
-	sampling_test_aggregate!(VitterD!Random,Random)(10000000,100000,urng,100,false);
+	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(10000000,100000,urng,100,false);
+	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(10000000,100000,urng,100,false);
 	writeln();
 
 	writeln("That's all I'm demonstrating for now.  Hope you enjoyed the show!");
