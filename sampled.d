@@ -40,6 +40,44 @@ protected:
 }
 
 
+class SamplingAlgorithmS(UniformRNG): SamplingAlgorithm!UniformRNG
+{ 
+	this(size_t records, size_t sample, ref UniformRNG urng)
+	{
+		super(records,sample,urng);
+	}
+
+	final size_t select(ref UniformRNG urng)
+	in
+	{
+		assert(_sampleRemaining > 0);
+		assert(_recordsRemaining >= _sampleRemaining);
+	}
+	body
+	{
+		//writeln("Starting S");
+		while(true) {
+			size_t r = uniform(0, _recordsRemaining, urng);
+
+			if(r < _sampleRemaining) {
+				size_t selectedRecord = _currentRecord;
+				_sampleRemaining--;
+				_recordsRemaining--;
+				_currentRecord++;
+				//writeln("\treturning ",selectedRecord,
+				//        "\tremaining records: ", _recordsRemaining,
+				//        "\tremaining to sample: ", _sampleRemaining,
+				//        "\tnext record to consider: ", _currentRecord);
+				return selectedRecord;
+			} else {
+				_recordsRemaining--;
+				_currentRecord++;
+			}
+		}
+	}
+}
+
+
 class SamplingAlgorithmSkip(UniformRNG): SamplingAlgorithm!UniformRNG
 {
 	this(size_t records, size_t sample, ref UniformRNG urng)
@@ -250,12 +288,18 @@ void main() {
 	sampling_test_simple!(SamplingAlgorithmD!Random,Random)(100,5,urng);
 	writeln();
 
+	writeln("Fan et al./Jones' Algorithm S:");
+	sampling_test_simple!(SamplingAlgorithmS!Random,Random)(100,5,urng);
+	writeln();
+
 	writeln("Now I'm going to again take samples of 5 from 100, but repeat the");
 	writeln("process 10 million times.  This is basically a simple way of");
 	writeln("checking for obvious bias -- we'll print out the number of times");
 	writeln("each record is picked so you can see.");
 	writeln();
 
+	sampling_test_aggregate!(SamplingAlgorithmS!Random,Random)(100,5,urng,10000000,true);
+	writeln();
 	sampling_test_aggregate!(SamplingAlgorithmA!Random,Random)(100,5,urng,10000000,true);
 	writeln();
 	sampling_test_aggregate!(SamplingAlgorithmD!Random,Random)(100,5,urng,10000000,true);
