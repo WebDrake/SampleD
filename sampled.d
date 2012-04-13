@@ -3,12 +3,8 @@ import std.random;
 import std.stdio;
 import std.c.time;
 
-interface Sampler(UniformRNG) {
-	size_t select(ref UniformRNG urng);
-}
 
-
-class Skipper(UniformRNG): Sampler!UniformRNG {
+class Skipper(UniformRNG) {
 	this(size_t records, size_t sample, ref UniformRNG urng)
 	{
 		_recordsRemaining = _recordsTotal = records;
@@ -172,17 +168,6 @@ void sampling_test_simple(SamplerType, UniformRNG)
 		write("\trecords remaining: ", s.recordsRemaining, ".");
 		writeln("\tstill to sample: ", s.sampleRemaining, ".");
 	}
-	// Let's see if we can bust this ...
-	
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
-	writeln("Selecting 1 more just for luck: ", s.select(urng), ", records remaining: ", s.recordsRemaining, ", still to sample: ", s.sampleRemaining);
 }
 
 void sampling_test_aggregate(SamplerType, UniformRNG)
