@@ -50,8 +50,7 @@ class SamplingAlgorithmS(UniformRNG): SamplingAlgorithm!UniformRNG
 	final size_t select(ref UniformRNG urng)
 	in
 	{
-		assert(_sampleRemaining > 0);
-		assert(_recordsRemaining >= _sampleRemaining);
+		assert( (_sampleRemaining > 0) && (_recordsRemaining >= _sampleRemaining) );
 	}
 	body
 	{
@@ -88,8 +87,7 @@ class SamplingAlgorithmSkip(UniformRNG): SamplingAlgorithm!UniformRNG
 	final size_t select(ref UniformRNG urng)
 	in
 	{
-		assert(_sampleRemaining > 0);
-		assert(_recordsRemaining >= _sampleRemaining);
+		assert( (_sampleRemaining > 0) && (_recordsRemaining >= _sampleRemaining) );
 	}
 	body
 	{
